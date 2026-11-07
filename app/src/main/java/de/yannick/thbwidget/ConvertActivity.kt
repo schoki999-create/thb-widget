@@ -10,13 +10,18 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 
-/** Kleines Eingabefenster: EUR eintippen, THB sofort sehen, "Übernehmen" schreibt es ins Widget. */
+/** Kleines Eingabefenster: Betrag eintippen, Umrechnung sofort sehen, ⇄ dreht die Richtung. */
 class ConvertActivity : Activity() {
 
     private lateinit var input: EditText
     private lateinit var result: TextView
     private lateinit var rateLine: TextView
     private lateinit var status: TextView
+    private lateinit var swap: TextView
+    private lateinit var inputCurrency: TextView
+
+    /** false = € eingeben → ฿, true = ฿ eingeben → € */
+    private var thbToEur = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,10 +32,11 @@ class ConvertActivity : Activity() {
         result = findViewById(R.id.result)
         rateLine = findViewById(R.id.rate_line)
         status = findViewById(R.id.status_line)
+        swap = findViewById(R.id.swap)
+        inputCurrency = findViewById(R.id.input_currency)
 
-        val start = RateStore.amount(this)
-        input.setText(formatForInput(start))
-        input.selectAll()
+        thbToEur = RateStore.thbToEur(this)
+        setInput(RateStore.amount(this))
         input.requestFocus()
 
         input.addTextChangedListener(object : TextWatcher {
@@ -44,6 +50,7 @@ class ConvertActivity : Activity() {
             ) { save(); true } else false
         }
 
+        swap.setOnClickListener { toggle() }
         findViewById<Button>(R.id.save).setOnClickListener { save() }
         findViewById<Button>(R.id.cancel).setOnClickListener { finish() }
 
@@ -58,19 +65,38 @@ class ConvertActivity : Activity() {
         }.start()
     }
 
+    /** Richtung umdrehen; das bisherige Ergebnis wird zur neuen Eingabe. */
+    private fun toggle() {
+        val rate = RateStore.rate(this)
+        val amount = RateStore.parseAmount(input.text.toString())
+        val newInput = if (rate != null && amount != null)
+            RateStore.roundNice(RateStore.convert(amount, rate, thbToEur)) else amount
+        thbToEur = !thbToEur
+        if (newInput != null) setInput(newInput) else input.setText("")
+        updateResult()
+    }
+
+    private fun setInput(v: Double) {
+        input.setText(formatForInput(v))
+        input.selectAll()
+    }
+
     private fun updateResult() {
         val rate = RateStore.rate(this)
         val amount = RateStore.parseAmount(input.text.toString())
+        inputCurrency.text = if (thbToEur) "฿" else "€"
+        swap.text = if (thbToEur) "฿ → €  ⇄" else "€ → ฿  ⇄"
         rateLine.text = if (rate != null) "1 € = ${RateStore.formatRate(rate)} ฿" else "Kurs wird geladen …"
         status.text = RateStore.statusLine(this)
         result.text = when {
-            rate == null -> "– ฿"
-            amount == null -> "0 ฿"
-            else -> RateStore.formatThb(amount * rate)
+            rate == null -> if (thbToEur) "– €" else "– ฿"
+            amount == null -> RateStore.formatOut(0.0, thbToEur)
+            else -> RateStore.formatOut(RateStore.convert(amount, rate, thbToEur), thbToEur)
         }
     }
 
     private fun save() {
+        RateStore.setThbToEur(this, thbToEur)
         RateStore.parseAmount(input.text.toString())?.let { RateStore.setAmount(this, it) }
         RateWidget.renderAll(applicationContext)
         finish()

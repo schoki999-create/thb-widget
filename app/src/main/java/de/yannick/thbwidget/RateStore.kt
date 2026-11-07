@@ -15,7 +15,8 @@ object RateStore {
     private const val KEY_RATE = "rate"
     private const val KEY_RATE_DATE = "rate_date"
     private const val KEY_FETCHED_AT = "fetched_at"
-    private const val KEY_AMOUNT = "amount_eur"
+    private const val KEY_AMOUNT = "amount_eur" // Eingabebetrag in der jeweiligen Eingabewährung
+    private const val KEY_DIR = "thb_to_eur"
 
     private val ENDPOINTS = listOf(
         "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=THB",
@@ -37,6 +38,30 @@ object RateStore {
     fun setAmount(ctx: Context, value: Double) {
         prefs(ctx).edit().putString(KEY_AMOUNT, value.toString()).apply()
     }
+
+    /** false = EUR eingeben → THB, true = THB eingeben → EUR */
+    fun thbToEur(ctx: Context): Boolean = prefs(ctx).getBoolean(KEY_DIR, false)
+
+    fun setThbToEur(ctx: Context, value: Boolean) {
+        prefs(ctx).edit().putBoolean(KEY_DIR, value).apply()
+    }
+
+    /** Rechnet einen Betrag in der aktuellen Richtung um. */
+    fun convert(amount: Double, rate: Double, thbToEur: Boolean): Double =
+        if (thbToEur) amount / rate else amount * rate
+
+    fun formatIn(v: Double, thbToEur: Boolean) = if (thbToEur) formatThb(v) else formatEur(v)
+    fun formatOut(v: Double, thbToEur: Boolean) = if (thbToEur) formatEur(v) else formatThb(v)
+
+    /** Richtung umdrehen; das bisherige Ergebnis wird zum neuen Eingabebetrag. */
+    fun toggleDirection(ctx: Context) {
+        val dir = thbToEur(ctx)
+        val rate = rate(ctx)
+        if (rate != null) setAmount(ctx, roundNice(convert(amount(ctx), rate, dir)))
+        setThbToEur(ctx, !dir)
+    }
+
+    fun roundNice(v: Double): Double = Math.round(v * 100.0) / 100.0
 
     /** Blockierend – nur im Hintergrund-Thread aufrufen. Gibt true zurück, wenn ein Kurs geladen wurde. */
     fun refresh(ctx: Context): Boolean {

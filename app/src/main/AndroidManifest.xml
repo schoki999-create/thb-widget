@@ -28,6 +28,7 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="de.yannick.thbwidget.REFRESH" />
+                <action android:name="de.yannick.thbwidget.SWAP" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

@@ -21,6 +21,9 @@ class RateWidget : AppWidgetProvider() {
         if (intent.action == ACTION_REFRESH) {
             renderAll(ctx, loading = true)
             refreshAsync(ctx)
+        } else if (intent.action == ACTION_SWAP) {
+            RateStore.toggleDirection(ctx)
+            renderAll(ctx)
         }
     }
 
@@ -39,6 +42,7 @@ class RateWidget : AppWidgetProvider() {
 
     companion object {
         const val ACTION_REFRESH = "de.yannick.thbwidget.REFRESH"
+        const val ACTION_SWAP = "de.yannick.thbwidget.SWAP"
 
         fun renderAll(ctx: Context, loading: Boolean = false) {
             val manager = AppWidgetManager.getInstance(ctx)
@@ -52,16 +56,17 @@ class RateWidget : AppWidgetProvider() {
             val v = RemoteViews(ctx.packageName, R.layout.widget)
             val rate = RateStore.rate(ctx)
             val amount = RateStore.amount(ctx)
+            val dir = RateStore.thbToEur(ctx)
 
+            v.setTextViewText(R.id.amount_eur, RateStore.formatIn(amount, dir))
             if (rate != null) {
                 v.setTextViewText(R.id.rate, "1 € = ${RateStore.formatRate(rate)} ฿")
-                v.setTextViewText(R.id.amount_eur, RateStore.formatEur(amount))
-                v.setTextViewText(R.id.amount_thb, RateStore.formatThb(amount * rate))
+                v.setTextViewText(R.id.amount_thb, RateStore.formatOut(RateStore.convert(amount, rate, dir), dir))
             } else {
                 v.setTextViewText(R.id.rate, "Kurs wird geladen …")
-                v.setTextViewText(R.id.amount_eur, RateStore.formatEur(amount))
-                v.setTextViewText(R.id.amount_thb, "– ฿")
+                v.setTextViewText(R.id.amount_thb, if (dir) "– €" else "– ฿")
             }
+            v.setTextViewText(R.id.swap, if (dir) "฿→€" else "€→฿")
             v.setTextViewText(
                 R.id.status,
                 if (loading) "Aktualisiere …" else RateStore.statusLine(ctx)
@@ -83,6 +88,14 @@ class RateWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             v.setOnClickPendingIntent(R.id.refresh, refresh)
+
+            // ⇄ → Richtung umdrehen
+            val swap = PendingIntent.getBroadcast(
+                ctx, 2,
+                Intent(ctx, RateWidget::class.java).setAction(ACTION_SWAP),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            v.setOnClickPendingIntent(R.id.swap, swap)
             return v
         }
     }
