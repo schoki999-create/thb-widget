@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Franni kalkuliert</string>
-    <string name="widget_desc">Franni rechnet Euro und Baht hin und her</string>
+    <string name="app_name">Alex rechnet</string>
+    <string name="widget_desc">Alex rechnet Euro und Baht hin und her</string>
 </resources>

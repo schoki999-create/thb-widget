@@ -1,4 +1,4 @@
-# Franni kalkuliert
+# Alex rechnet
 
 Android-Homescreen-Widget: zeigt den aktuellen Kurs Euro → Thai-Baht (EZB-Referenzkurs über frankfurter.dev) und rechnet einen eigenen Euro-Betrag um.
 
@@ -8,4 +8,4 @@ Android-Homescreen-Widget: zeigt den aktuellen Kurs Euro → Thai-Baht (EZB-Refe
 
 ## Bauen
 
-Jeder Push auf `main` baut über GitHub Actions eine APK und legt sie unter **Releases** ab (`Franni-kalkuliert.apk`).
+Jeder Push auf `main` baut über GitHub Actions eine APK und legt sie unter **Releases** ab (`Alex-rechnet.apk`).

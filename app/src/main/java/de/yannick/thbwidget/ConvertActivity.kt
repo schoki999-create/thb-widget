@@ -34,6 +34,8 @@ class ConvertActivity : Activity() {
         status = findViewById(R.id.status_line)
         swap = findViewById(R.id.swap)
         inputCurrency = findViewById(R.id.input_currency)
+        findViewById<android.widget.ImageView>(R.id.title_art)
+            .setImageBitmap(TitleArt.render(this, getString(R.string.app_name), 52f))
 
         thbToEur = RateStore.thbToEur(this)
         setInput(RateStore.amount(this))
@@ -85,7 +87,6 @@ class ConvertActivity : Activity() {
         val rate = RateStore.rate(this)
         val amount = RateStore.parseAmount(input.text.toString())
         inputCurrency.text = if (thbToEur) "฿" else "€"
-        swap.text = if (thbToEur) "฿ → €  ⇄" else "€ → ฿  ⇄"
         rateLine.text = if (rate != null) "1 € = ${RateStore.formatRate(rate)} ฿" else "Kurs wird geladen …"
         status.text = RateStore.statusLine(this)
         result.text = when {

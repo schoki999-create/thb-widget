@@ -64,7 +64,7 @@ class RateWidget : AppWidgetProvider() {
             } else {
                 v.setTextViewText(R.id.amount_thb, if (dir) "– €" else "– ฿")
             }
-            v.setTextViewText(R.id.swap, if (dir) "฿→€" else "€→฿")
+            v.setImageViewBitmap(R.id.title_art, TitleArt.render(ctx, ctx.getString(R.string.app_name)))
             // Oben steht der App-Name, Kurs + Stand wandern in die Fußzeile
             val rateText = if (rate != null) "1 € = ${RateStore.formatRate(rate)} ฿" else "Kurs wird geladen …"
             v.setTextViewText(
