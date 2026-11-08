@@ -29,7 +29,7 @@ object TitleArt {
     private var cache: Bitmap? = null
     private var cacheKey: String? = null
 
-    fun render(ctx: Context, text: String, heightDp: Float = 40f): Bitmap {
+    fun render(ctx: Context, text: String, heightDp: Float = 50f): Bitmap {
         val density = ctx.resources.displayMetrics.density
         val key = "$text|$heightDp|$density"
         cache?.let { if (cacheKey == key && !it.isRecycled) return it }
