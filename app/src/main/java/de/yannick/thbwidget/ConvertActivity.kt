@@ -49,11 +49,10 @@ class ConvertActivity : Activity() {
         input.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE ||
                 (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
-            ) { save(); true } else false
+            ) { finish(); true } else false
         }
 
         swap.setOnClickListener { toggle() }
-        findViewById<Button>(R.id.save).setOnClickListener { save() }
         findViewById<Button>(R.id.cancel).setOnClickListener { finish() }
 
         updateResult()
@@ -96,11 +95,16 @@ class ConvertActivity : Activity() {
         }
     }
 
+    /** Beim Verlassen (Schließen, daneben tippen, Zurück) automatisch ins Widget übernehmen. */
+    override fun onPause() {
+        super.onPause()
+        save()
+    }
+
     private fun save() {
         RateStore.setThbToEur(this, thbToEur)
         RateStore.parseAmount(input.text.toString())?.let { RateStore.setAmount(this, it) }
         RateWidget.renderAll(applicationContext)
-        finish()
     }
 
     private fun formatForInput(v: Double): String =
