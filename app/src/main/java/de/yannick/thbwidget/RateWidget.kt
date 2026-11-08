@@ -60,16 +60,18 @@ class RateWidget : AppWidgetProvider() {
 
             v.setTextViewText(R.id.amount_eur, RateStore.formatIn(amount, dir))
             if (rate != null) {
-                v.setTextViewText(R.id.rate, "1 € = ${RateStore.formatRate(rate)} ฿")
                 v.setTextViewText(R.id.amount_thb, RateStore.formatOut(RateStore.convert(amount, rate, dir), dir))
             } else {
-                v.setTextViewText(R.id.rate, "Kurs wird geladen …")
                 v.setTextViewText(R.id.amount_thb, if (dir) "– €" else "– ฿")
             }
             v.setTextViewText(R.id.swap, if (dir) "฿→€" else "€→฿")
+            // Oben steht der App-Name, Kurs + Stand wandern in die Fußzeile
+            val rateText = if (rate != null) "1 € = ${RateStore.formatRate(rate)} ฿" else "Kurs wird geladen …"
             v.setTextViewText(
                 R.id.status,
-                if (loading) "Aktualisiere …" else RateStore.statusLine(ctx)
+                if (loading) "$rateText · Aktualisiere …"
+                else if (rate != null) "$rateText · ${RateStore.statusLine(ctx)}"
+                else rateText
             )
 
             // Tippen aufs Widget → Eingabefenster
